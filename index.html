@@ -3,311 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VelocityDrive Pro | Next-Gen Rental Platform</title>
-    <!-- CSS & Libraries -->
+    <title>EliteDrive | Pro Rental System</title>
+    <!-- Modern Tech Stack -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
-        body { font-family: 'Outfit', sans-serif; background-color: #080a0f; color: white; scroll-behavior: smooth; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .active-tab { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
-        input, select { background: #161b22 !important; border: 1px solid #30363d !important; color: white !important; }
-        .car-card:hover { border-color: #3b82f6; transform: translateY(-5px); }
-        @media print { .no-print { display: none; } }
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;500;800&display=swap');
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Bricolage Grotesque', sans-serif; background: #050505; color: #fff; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .car-card:hover img { transform: scale(1.1) rotate(-2deg); }
+        .bg-gradient-pro { background: radial-gradient(circle at top right, #3b82f633, transparent), radial-gradient(circle at bottom left, #2dd4bf22, transparent); }
     </style>
 </head>
-<body>
-    <div id="app" v-cloak>
+<body x-data="rentalApp()" x-init="init()" class="bg-gradient-pro min-h-screen">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="glass sticky top-0 z-[100] px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2 cursor-pointer" @click="view = 'home'">
+            <div class="bg-blue-600 p-2 rounded-lg text-white"><i class="fas fa-bolt"></i></div>
+            <span class="text-2xl font-black tracking-tight">ELITE<span class="text-blue-500">DRIVE</span></span>
+        </div>
         
-        <!-- NAVIGATION -->
-        <nav class="glass sticky top-0 z-[100] px-6 py-4 flex justify-between items-center no-print">
-            <div class="text-2xl font-black tracking-tighter cursor-pointer" @click="view = 'home'">
-                VELOCITY<span class="text-blue-500">PRO</span>
-            </div>
+        <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+            <a @click="view = 'home'" class="hover:text-blue-500 cursor-pointer">Home</a>
+            <a @click="view = 'fleet'" class="hover:text-blue-500 cursor-pointer">The Fleet</a>
+            <a @click="view = 'dashboard'" class="hover:text-blue-500 cursor-pointer">My Bookings</a>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <template x-if="!isLoggedIn">
+                <button @click="view = 'login'" class="bg-white text-black px-6 py-2 rounded-full font-bold text-sm">Login</button>
+            </template>
+            <template x-if="isLoggedIn">
+                <div class="flex items-center gap-3">
+                    <div @click="view = 'dashboard'" class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer font-bold uppercase">
+                        <span x-text="user.name[0]"></span>
+                    </div>
+                    <button @click="logout()" class="text-gray-500 text-xs hover:text-white"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </template>
+        </div>
+    </nav>
+
+    <!-- VIEW: HOME PAGE -->
+    <main x-show="view === 'home'" x-cloak class="px-6 pt-20 pb-32 max-w-6xl mx-auto">
+        <div class="text-center mb-20">
+            <h1 class="text-6xl md:text-8xl font-black mb-6 leading-none italic">MOVE FAST.<br><span class="text-blue-600 font-normal not-italic">RENT FASTER.</span></h1>
+            <p class="text-gray-400 text-xl max-w-2xl mx-auto mb-10 tracking-tight">Your 2026 fleet of premium EVs and Luxury SUVs. Flight-synced delivery to any airport. Instant digital keys.</p>
             
-            <div class="hidden md:flex gap-8 text-sm font-semibold uppercase tracking-widest">
-                <a @click="view = 'search'" class="cursor-pointer hover:text-blue-500">Fleet</a>
-                <a @click="view = 'contact'" class="cursor-pointer hover:text-blue-500">Support</a>
-                <a v-if="user" @click="view = 'dashboard'" class="cursor-pointer hover:text-blue-500 text-teal-400">My Dashboard</a>
+            <!-- Quick Search Bar -->
+            <div class="glass p-3 rounded-[3rem] max-w-4xl mx-auto flex flex-col md:flex-row gap-2 shadow-2xl">
+                <div class="flex-1 flex items-center gap-3 px-6 py-4 bg-white/5 rounded-full">
+                    <i class="fas fa-location-dot text-blue-500"></i>
+                    <input x-model="searchQuery" type="text" placeholder="Where are you going?" class="bg-transparent outline-none w-full text-sm">
+                </div>
+                <button @click="view = 'fleet'" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-full font-black transition text-sm">SEARCH FLEET</button>
             </div>
+        </div>
 
-            <div class="flex items-center gap-4">
-                <button v-if="!user" @click="view = 'login'" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-sm">Login</button>
-                <div v-else class="flex items-center gap-3">
-                    <span class="text-xs text-gray-400">Hello, {{ user.name }}</span>
-                    <button @click="logout" class="text-xs bg-white/10 px-3 py-1 rounded-full">Logout</button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- HOME PAGE VIEW -->
-        <main v-if="view === 'home'" class="animate-in fade-in duration-700">
-            <header class="px-6 py-20 text-center max-w-4xl mx-auto">
-                <h1 class="text-6xl md:text-8xl font-black mb-6 leading-tight">DRIVE THE <span class="text-blue-500">FUTURE</span> TODAY.</h1>
-                <p class="text-gray-400 text-lg mb-10">Premium car rentals with AI-powered flight sync and contactless delivery. No queues, no keys, just pure speed.</p>
-                <div class="flex flex-wrap justify-center gap-4">
-                    <button @click="view = 'search'" class="bg-blue-600 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-blue-500 transition">Browse Fleet</button>
-                    <button @click="view = 'contact'" class="bg-white/5 px-10 py-4 rounded-2xl font-bold text-lg border border-white/10 hover:bg-white/10">Contact Sales</button>
-                </div>
-            </header>
-
-            <section class="px-6 py-10 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
-                <div v-for="cat in categories" @click="setCategory(cat.name)" class="glass p-6 rounded-3xl text-center cursor-pointer hover:bg-blue-600 transition">
-                    <i :class="cat.icon" class="text-2xl mb-3 block"></i>
-                    <span class="text-xs font-bold uppercase">{{ cat.name }}</span>
-                </div>
-            </section>
-        </main>
-
-        <!-- SEARCH / FLEET VIEW -->
-        <main v-if="view === 'search'" class="px-6 py-10 max-w-7xl mx-auto">
-            <div class="flex flex-col md:flex-row gap-8">
-                <!-- Sidebar Filters -->
-                <aside class="w-full md:w-64 space-y-6">
-                    <h3 class="text-xl font-bold">Filters</h3>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Search</label>
-                        <input v-model="searchQuery" type="text" class="w-full mt-2 p-3 rounded-xl outline-none" placeholder="Car model...">
+        <!-- Featured Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <template x-for="car in cars.slice(0, 3)">
+                <div class="glass p-6 rounded-[2.5rem] hover:border-blue-500/50 transition duration-500 group cursor-pointer" @click="openCar(car)">
+                    <div class="overflow-hidden rounded-3xl mb-6">
+                        <img :src="car.image" class="w-full h-48 object-cover transition duration-700">
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Max Price (${{maxPrice}})</label>
-                        <input v-model="maxPrice" type="range" min="50" max="500" class="w-full mt-2">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Transmission</label>
-                        <select v-model="filterTransmission" class="w-full mt-2 p-3 rounded-xl">
-                            <option value="">All</option>
-                            <option value="Auto">Automatic</option>
-                            <option value="Manual">Manual</option>
-                        </select>
-                    </div>
-                </aside>
-
-                <!-- Grid -->
-                <div class="flex-1">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div v-for="car in filteredCars" :key="car.id" class="car-card glass rounded-[2.5rem] overflow-hidden transition-all">
-                            <img :src="car.image" class="h-48 w-full object-cover">
-                            <div class="p-6">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-bold text-lg">{{ car.name }}</h4>
-                                    <span class="text-blue-500 font-bold">${{ car.price }}<small class="text-gray-500 text-[10px]">/day</small></span>
-                                </div>
-                                <div class="flex gap-3 text-[10px] text-gray-400 mb-6">
-                                    <span><i class="fas fa-gas-pump"></i> {{ car.fuel }}</span>
-                                    <span><i class="fas fa-cog"></i> {{ car.transmission }}</span>
-                                    <span><i class="fas fa-user"></i> {{ car.seats }} Seats</span>
-                                </div>
-                                <button @click="selectCar(car)" class="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-blue-600 hover:text-white transition">Book Now</button>
-                            </div>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h3 x-text="car.name" class="text-2xl font-black"></h3>
+                            <span x-text="car.type" class="text-xs text-blue-400 font-bold uppercase tracking-widest"></span>
+                        </div>
+                        <div class="text-right">
+                            <span x-text="'$' + car.price" class="text-2xl font-black"></span>
+                            <span class="text-gray-500 text-[10px] block font-bold">PER DAY</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </template>
+        </div>
+    </main>
 
-        <!-- BOOKING MODAL -->
-        <div v-if="selectedCar" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="selectedCar = null"></div>
-            <div class="glass relative w-full max-w-lg rounded-[3rem] p-8 overflow-y-auto max-h-[90vh]">
-                <h2 class="text-3xl font-black mb-1">Book Your {{ selectedCar.name }}</h2>
-                <p class="text-gray-400 text-sm mb-6">Complete the details below to secure your rental.</p>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
-                    <div>
-                        <label class="font-bold text-gray-500">Pick-up Date</label>
-                        <input v-model="bookingForm.start" type="date" class="w-full mt-2 p-3 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="font-bold text-gray-500">Return Date</label>
-                        <input v-model="bookingForm.end" type="date" class="w-full mt-2 p-3 rounded-xl">
+    <!-- VIEW: FLEET (FULL SEARCH) -->
+    <main x-show="view === 'fleet'" x-cloak class="px-6 py-12 max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row gap-10">
+            <!-- Advanced Filters -->
+            <aside class="w-full md:w-72 space-y-8">
+                <div>
+                    <h3 class="text-2xl font-black mb-6">Filters</h3>
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Max Budget ($<span x-text="maxPrice"></span>)</label>
+                    <input type="range" x-model="maxPrice" min="50" max="1000" class="w-full accent-blue-600">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Category</label>
+                    <div class="space-y-2">
+                        <template x-for="cat in ['All', 'EV', 'SUV', 'Luxury', 'Sports']">
+                            <button @click="category = cat" :class="category === cat ? 'bg-blue-600 border-transparent' : 'bg-white/5 border-white/10 text-gray-500'" class="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border transition" x-text="cat"></button>
+                        </template>
                     </div>
                 </div>
+            </aside>
 
-                <div class="bg-blue-600/10 p-6 rounded-3xl mb-8 border border-blue-500/20">
-                    <div class="flex justify-between mb-2">
-                        <span>Daily Rate</span>
-                        <span class="font-bold">${{ selectedCar.price }}</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Days</span>
-                        <span class="font-bold">{{ calculateDays }}</span>
-                    </div>
-                    <div class="flex justify-between text-xl font-black text-blue-400 pt-4 border-t border-white/10">
-                        <span>Total Due</span>
-                        <span>${{ calculateTotal }}</span>
-                    </div>
+            <!-- Results -->
+            <div class="flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <template x-for="car in filteredCars()">
+                        <div class="car-card glass p-4 rounded-[2rem] border border-white/5 hover:border-blue-500 transition-all duration-500 flex flex-col">
+                            <div class="relative overflow-hidden rounded-[1.5rem] bg-gray-900">
+                                <img :src="car.image" class="w-full h-44 object-cover transition duration-700">
+                                <div class="absolute top-3 right-3 glass px-3 py-1 rounded-full text-[10px] font-black" x-text="car.range"></div>
+                            </div>
+                            <div class="p-4 flex-1 flex flex-col">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h3 x-text="car.name" class="text-xl font-black"></h3>
+                                    <div class="text-blue-500 font-black text-xl leading-none" x-text="'$' + car.price"><span class="text-[10px] text-gray-500">/D</span></div>
+                                </div>
+                                <div class="flex gap-4 text-[10px] font-bold text-gray-500 uppercase mb-6">
+                                    <span x-text="car.transmission"></span>
+                                    <span>•</span>
+                                    <span x-text="car.seats + ' Seats'"></span>
+                                </div>
+                                <button @click="openCar(car)" class="w-full bg-white text-black py-4 rounded-2xl font-black text-sm hover:bg-blue-600 hover:text-white transition mt-auto">BOOK NOW</button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-
-                <button v-if="user" @click="confirmBooking" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-600/30">Confirm Reservation</button>
-                <button v-else @click="view = 'login'; selectedCar = null" class="w-full bg-white text-black py-4 rounded-2xl font-black">Login to Book</button>
             </div>
         </div>
+    </main>
 
-        <!-- DASHBOARD VIEW -->
-        <main v-if="view === 'dashboard'" class="px-6 py-10 max-w-5xl mx-auto">
-            <h2 class="text-4xl font-black mb-8">User Dashboard</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="glass p-6 rounded-3xl">
-                    <span class="text-gray-500 text-xs font-bold uppercase">Total Bookings</span>
-                    <div class="text-3xl font-black mt-1">{{ bookings.length }}</div>
+    <!-- VIEW: BOOKING MODAL -->
+    <div x-show="selectedCar" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/95 backdrop-blur-md" @click="selectedCar = null"></div>
+        <div class="glass relative w-full max-w-xl rounded-[3rem] p-10 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-4xl font-black mb-2" x-text="'Book ' + selectedCar?.name"></h2>
+            <p class="text-gray-400 mb-8 font-medium">Verify your rental dates and total below.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">Pickup Date</label>
+                    <input type="date" x-model="bookingForm.start" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500">
                 </div>
-                <div class="glass p-6 rounded-3xl">
-                    <span class="text-gray-500 text-xs font-bold uppercase">Account Status</span>
-                    <div class="text-3xl font-black mt-1 text-teal-400">Verified</div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">Return Date</label>
+                    <input type="date" x-model="bookingForm.end" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500">
                 </div>
             </div>
 
-            <h3 class="text-xl font-bold mb-4">Recent Bookings</h3>
-            <div class="space-y-4">
-                <div v-for="b in bookings" class="glass p-6 rounded-3xl flex justify-between items-center">
-                    <div>
-                        <div class="font-bold text-lg">{{ b.carName }}</div>
-                        <div class="text-xs text-gray-500">Ref: {{ b.id }} | Dates: {{ b.start }} to {{ b.end }}</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-blue-500 font-black">${{ b.total }}</div>
-                        <button @click="printInvoice(b)" class="text-[10px] uppercase font-bold text-gray-400 hover:text-white mt-1">Print Invoice</button>
-                    </div>
+            <div class="bg-blue-600/10 p-8 rounded-[2rem] border border-blue-500/20 mb-8 space-y-3">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Day Rate</span>
+                    <span class="font-bold" x-text="'$' + selectedCar?.price"></span>
                 </div>
-                <div v-if="bookings.length === 0" class="text-center py-10 text-gray-600">No bookings found yet.</div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Duration</span>
+                    <span class="font-bold" x-text="calculateDays() + ' Days'"></span>
+                </div>
+                <div class="flex justify-between text-2xl font-black pt-4 border-t border-white/10 text-blue-500">
+                    <span>Grand Total</span>
+                    <span x-text="'$' + (selectedCar?.price * calculateDays())"></span>
+                </div>
             </div>
-        </main>
 
-        <!-- LOGIN / SIGNUP VIEW -->
-        <main v-if="view === 'login'" class="px-6 py-20 flex justify-center">
-            <div class="glass w-full max-w-sm p-10 rounded-[3rem] text-center">
-                <h2 class="text-3xl font-black mb-2">Welcome Back</h2>
-                <p class="text-gray-400 text-sm mb-8">Enter your details to manage your rentals.</p>
-                <input v-model="authForm.email" type="email" placeholder="Email Address" class="w-full mb-4 p-4 rounded-2xl outline-none">
-                <input v-model="authForm.password" type="password" placeholder="Password" class="w-full mb-6 p-4 rounded-2xl outline-none">
-                <button @click="handleAuth" class="w-full bg-blue-600 py-4 rounded-2xl font-black mb-4">Continue</button>
-                <p class="text-xs text-gray-500">Demo Mode: Any details will work.</p>
-            </div>
-        </main>
-
-        <!-- INVOICE VIEW (PRINTABLE) -->
-        <div v-if="activeInvoice" class="fixed inset-0 bg-white text-black z-[300] p-10 flex flex-col items-center">
-            <div class="w-full max-w-2xl border-2 border-black p-10 rounded-xl relative">
-                <div class="flex justify-between items-start mb-10">
-                    <div>
-                        <h1 class="text-3xl font-black italic">VELOCITY DRIVE</h1>
-                        <p class="text-sm">Official Rental Invoice</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold">REF: {{ activeInvoice.id }}</p>
-                        <p class="text-xs">{{ activeInvoice.start }}</p>
-                    </div>
-                </div>
-                <div class="space-y-4 mb-10">
-                    <div class="flex justify-between border-b pb-2"><span>Customer:</span><span class="font-bold">{{ user.name }}</span></div>
-                    <div class="flex justify-between border-b pb-2"><span>Vehicle:</span><span class="font-bold">{{ activeInvoice.carName }}</span></div>
-                    <div class="flex justify-between border-b pb-2"><span>Total Paid:</span><span class="font-bold text-xl">${{ activeInvoice.total }}</span></div>
-                </div>
-                <div class="flex flex-col items-center">
-                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + activeInvoice.id" class="w-32 h-32 mb-4">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Scan at Vehicle for Instant Unlock</p>
-                </div>
-                <button @click="activeInvoice = null" class="no-print mt-10 bg-black text-white px-8 py-2 rounded-full font-bold">Close</button>
-                <button onclick="window.print()" class="no-print ml-4 bg-gray-200 px-8 py-2 rounded-full font-bold">Print PDF</button>
-            </div>
+            <button v-if="isLoggedIn" @click="confirmBooking()" class="w-full bg-blue-600 py-5 rounded-[2rem] font-black text-xl hover:bg-blue-500 shadow-2xl shadow-blue-600/30 transition">SECURE BOOKING</button>
+            <button v-else @click="view = 'login'; selectedCar = null" class="w-full bg-white text-black py-5 rounded-[2rem] font-black text-xl">LOGIN TO BOOK</button>
         </div>
-
     </div>
 
-    <script>
-        const { createApp } = Vue;
+    <!-- VIEW: DASHBOARD (MY BOOKINGS) -->
+    <main x-show="view === 'dashboard'" x-cloak class="px-6 py-12 max-w-4xl mx-auto">
+        <h2 class="text-5xl font-black mb-4">Dashboard</h2>
+        <p class="text-gray-500 mb-12">Manage your current rentals and digital keys.</p>
 
-        createApp({
-            data() {
-                return {
-                    view: 'home',
-                    user: JSON.parse(localStorage.getItem('user')) || null,
-                    selectedCar: null,
-                    searchQuery: '',
-                    maxPrice: 500,
-                    filterTransmission: '',
-                    activeInvoice: null,
-                    authForm: { email: '', password: '' },
-                    bookingForm: { start: '', end: '' },
-                    bookings: JSON.parse(localStorage.getItem('bookings')) || [],
-                    categories: [
-                        { name: 'SUV', icon: 'fas fa-mountain' },
-                        { name: 'Sedan', icon: 'fas fa-car' },
-                        { name: 'Luxury', icon: 'fas fa-crown' },
-                        { name: 'Sports', icon: 'fas fa-bolt' },
-                        { name: 'Electric', icon: 'fas fa-leaf' }
-                    ],
-                    cars: [
-                        { id: 1, name: 'Tesla Model S', category: 'Electric', price: 145, image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Electric', seats: 5 },
-                        { id: 2, name: 'Porsche Taycan', category: 'Sports', price: 199, image: 'https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Electric', seats: 4 },
-                        { id: 3, name: 'Range Rover Sport', category: 'SUV', price: 130, image: 'https://images.unsplash.com/photo-1606611013016-969c19ba27bb?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Petrol', seats: 7 },
-                        { id: 4, name: 'BMW M4 Competition', category: 'Luxury', price: 175, image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Petrol', seats: 4 },
-                        { id: 5, name: 'Mercedes G-Wagon', category: 'SUV', price: 250, image: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Petrol', seats: 5 },
-                        { id: 6, name: 'Audi RS e-tron', category: 'Electric', price: 180, image: 'https://images.unsplash.com/photo-1610647752706-3bb12232b3ab?auto=format&fit=crop&q=80&w=600', transmission: 'Auto', fuel: 'Electric', seats: 5 },
-                    ]
-                }
-            },
-            computed: {
+        <div class="grid grid-cols-1 gap-4">
+            <template x-for="b in bookings">
+                <div class="glass p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="flex items-center gap-6">
+                        <div class="bg-blue-600/20 p-4 rounded-3xl text-blue-500">
+                            <i class="fas fa-car text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-black" x-text="b.carName"></h4>
+                            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest" x-text="b.start + ' → ' + b.end"></p>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-right">
+                        <div class="text-2xl font-black text-blue-500 mb-2" x-text="'$' + b.total"></div>
+                        <span class="bg-teal-500/10 text-teal-400 text-[10px] px-4 py-1 rounded-full font-black border border-teal-500/20 uppercase tracking-widest">Digital Key Active</span>
+                    </div>
+                </div>
+            </template>
+            <template x-if="bookings.length === 0">
+                <div class="text-center py-20 glass rounded-[3rem]">
+                    <i class="fas fa-calendar-xmark text-4xl text-gray-700 mb-4 block"></i>
+                    <p class="text-gray-500 font-bold uppercase tracking-widest">No active rentals found.</p>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <!-- VIEW: LOGIN -->
+    <main x-show="view === 'login'" x-cloak class="px-6 py-20 flex items-center justify-center">
+        <div class="glass p-12 rounded-[3.5rem] w-full max-w-md text-center">
+            <h2 class="text-4xl font-black mb-2">Welcome.</h2>
+            <p class="text-gray-500 mb-10">Access your 2026 travel account.</p>
+            <input x-model="auth.email" type="email" placeholder="Email" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl mb-4 outline-none focus:border-blue-500">
+            <input x-model="auth.password" type="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl mb-8 outline-none focus:border-blue-500">
+            <button @click="login()" class="w-full bg-blue-600 py-5 rounded-[2rem] font-black text-lg">ENTER SYSTEM</button>
+        </div>
+    </main>
+
+    <script>
+        function rentalApp() {
+            return {
+                view: 'home',
+                isLoggedIn: false,
+                user: null,
+                selectedCar: null,
+                searchQuery: '',
+                maxPrice: 1000,
+                category: 'All',
+                bookings: [],
+                auth: { email: '', password: '' },
+                bookingForm: { start: '', end: '' },
+                
+                cars: [
+                    { id: 1, name: 'Tesla Model S Plaid', category: 'EV', price: 145, transmission: 'Automatic', seats: 5, range: '390mi', image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800' },
+                    { id: 2, name: 'Porsche Taycan S', category: 'Sports', price: 195, transmission: 'Automatic', seats: 4, range: '280mi', image: 'https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&q=80&w=800' },
+                    { id: 3, name: 'Range Rover SV', category: 'SUV', price: 210, transmission: 'Automatic', seats: 7, range: 'V8 Hybrid', image: 'https://images.unsplash.com/photo-1606611013016-969c19ba27bb?auto=format&fit=crop&q=80&w=800' },
+                    { id: 4, name: 'Lucid Air Dream', category: 'EV', price: 180, transmission: 'Automatic', seats: 5, range: '520mi', image: 'https://images.unsplash.com/photo-1620803135739-5c32049e4922?auto=format&fit=crop&q=80&w=800' },
+                    { id: 5, name: 'Mercedes G63 AMG', category: 'Luxury', price: 295, transmission: 'Automatic', seats: 5, range: 'High Power', image: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?auto=format&fit=crop&q=80&w=800' },
+                    { id: 6, name: 'Audi RS e-tron GT', category: 'EV', price: 170, transmission: 'Automatic', seats: 5, range: '300mi', image: 'https://images.unsplash.com/photo-1610647752706-3bb12232b3ab?auto=format&fit=crop&q=80&w=800' }
+                ],
+
+                init() {
+                    const savedUser = localStorage.getItem('user');
+                    const savedBookings = localStorage.getItem('bookings');
+                    if(savedUser) {
+                        this.user = JSON.parse(savedUser);
+                        this.isLoggedIn = true;
+                    }
+                    if(savedBookings) this.bookings = JSON.parse(savedBookings);
+                },
+
                 filteredCars() {
-                    return this.cars.filter(car => {
-                        return car.name.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
-                               car.price <= this.maxPrice &&
-                               (this.filterTransmission === '' || car.transmission === this.filterTransmission);
+                    return this.cars.filter(c => {
+                        const matchesSearch = c.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchesCat = this.category === 'All' || c.category === this.category;
+                        const matchesPrice = c.price <= this.maxPrice;
+                        return matchesSearch && matchesCat && matchesPrice;
                     });
                 },
+
+                openCar(car) {
+                    this.selectedCar = car;
+                    this.bookingForm.start = new Date().toISOString().split('T')[0];
+                    this.bookingForm.end = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
+                },
+
                 calculateDays() {
-                    if (!this.bookingForm.start || !this.bookingForm.end) return 1;
-                    const start = new Date(this.bookingForm.start);
-                    const end = new Date(this.bookingForm.end);
-                    const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                    if(!this.bookingForm.start || !this.bookingForm.end) return 1;
+                    const d1 = new Date(this.bookingForm.start);
+                    const d2 = new Date(this.bookingForm.end);
+                    const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
                     return diff > 0 ? diff : 1;
                 },
-                calculateTotal() {
-                    return this.selectedCar ? this.selectedCar.price * this.calculateDays : 0;
-                }
-            },
-            methods: {
-                handleAuth() {
-                    const newUser = { name: this.authForm.email.split('@')[0], email: this.authForm.email };
-                    this.user = newUser;
-                    localStorage.setItem('user', JSON.stringify(newUser));
-                    this.view = 'home';
-                },
-                logout() {
-                    this.user = null;
-                    localStorage.removeItem('user');
-                    this.view = 'home';
-                },
-                selectCar(car) {
-                    this.selectedCar = car;
-                },
+
                 confirmBooking() {
-                    const newBooking = {
-                        id: 'VEL-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                    const booking = {
+                        id: Math.random().toString(36).substr(2, 9).toUpperCase(),
                         carName: this.selectedCar.name,
+                        total: this.selectedCar.price * this.calculateDays(),
                         start: this.bookingForm.start,
-                        end: this.bookingForm.end,
-                        total: this.calculateTotal,
-                        date: new Date().toLocaleDateString()
+                        end: this.bookingForm.end
                     };
-                    this.bookings.unshift(newBooking);
+                    this.bookings.unshift(booking);
                     localStorage.setItem('bookings', JSON.stringify(this.bookings));
                     this.selectedCar = null;
                     this.view = 'dashboard';
-                    alert("Booking Successful! Check your dashboard.");
                 },
-                printInvoice(booking) {
-                    this.activeInvoice = booking;
+
+                login() {
+                    if(this.auth.email.length > 3) {
+                        this.user = { name: this.auth.email.split('@')[0], email: this.auth.email };
+                        this.isLoggedIn = true;
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        this.view = 'home';
+                    }
                 },
-                setCategory(cat) {
-                    this.searchQuery = cat;
-                    this.view = 'search';
+
+                logout() {
+                    localStorage.removeItem('user');
+                    this.isLoggedIn = false;
+                    this.user = null;
+                    this.view = 'home';
                 }
             }
-        }).mount('#app');
+        }
     </script>
 </body>
-</html>
+    </html>
