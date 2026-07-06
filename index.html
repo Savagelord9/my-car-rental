@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftRide | Premium Car Rental</title>
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .dark { background-color: #1a202c; color: white; }
+        .car-card:hover { transform: translateY(-5px); transition: 0.3s; }
+    </style>
+</head>
+<body class="bg-gray-50 transition-colors duration-300" id="body">
+
+    <!-- NAVIGATION -->
+    <nav class="bg-white border-b p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex items-center gap-2 text-2xl font-bold text-blue-600">
+            <i data-lucide="car"></i> SwiftRide
+        </div>
+        <div class="hidden md:flex gap-8 font-medium">
+            <a href="#" class="hover:text-blue-600">Home</a>
+            <a href="#cars" class="hover:text-blue-600">Cars</a>
+            <a href="#" onclick="showDashboard()" class="hover:text-blue-600">My Bookings</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <i data-lucide="moon" id="theme-icon"></i>
+            </button>
+            <button onclick="alert('Login Logic Triggered')" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">Login</button>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative bg-blue-900 text-white py-20 px-6 text-center">
+        <h1 class="text-5xl font-extrabold mb-4">Drive Your Dream Today</h1>
+        <p class="text-xl mb-8 opacity-90">Affordable, reliable, and luxury cars at your fingertips.</p>
+        
+        <!-- SEARCH BAR -->
+        <div class="max-w-4xl mx-auto bg-white p-4 rounded-xl shadow-xl flex flex-wrap gap-4 text-gray-800">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-bold uppercase text-gray-500">Location</label>
+                <input type="text" placeholder="City or Airport" class="w-full p-2 outline-none">
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-xs font-bold uppercase text-gray-500">Pickup Date</label>
+                <input type="date" class="w-full p-2 outline-none">
+            </div>
+            <button class="bg-blue-600 text-white px-10 py-3 rounded-lg font-bold hover:bg-blue-700">Search Cars</button>
+        </div>
+    </header>
+
+    <!-- CAR LISTING -->
+    <main class="max-w-7xl mx-auto py-12 px-6" id="cars">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-3xl font-bold">Featured Fleet</h2>
+            <div class="flex gap-2">
+                <button class="px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">All</button>
+                <button class="px-4 py-1 hover:bg-gray-200 rounded-full text-sm">SUV</button>
+                <button class="px-4 py-1 hover:bg-gray-200 rounded-full text-sm">Luxury</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="car-grid">
+            <!-- Cars will be injected here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- DASHBOARD MODAL (Hidden by default) -->
+    <div id="dashboard" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-4xl p-8 rounded-2xl shadow-2xl relative">
+            <button onclick="hideDashboard()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500">
+                <i data-lucide="x-circle"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6">User Dashboard</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b dark:border-gray-700">
+                            <th class="p-4">Car</th>
+                            <th class="p-4">Date</th>
+                            <th class="p-4">Total</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booking-list">
+                        <!-- Bookings appear here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 py-12 px-6 text-center">
+        <p>&copy; 2024 SwiftRide Car Rentals. All features simulated for project purposes.</p>
+    </footer>
+
+    <script>
+        // 1. DATA: Car Information
+        const cars = [
+            { id: 1, name: 'Tesla Model 3', type: 'Electric', price: 120, img: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400' },
+            { id: 2, name: 'BMW X5 SUV', type: 'Luxury', price: 150, img: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400' },
+            { id: 3, name: 'Toyota Camry', type: 'Sedan', price: 80, img: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400' },
+            { id: 4, name: 'Ford Mustang', type: 'Sports', price: 200, img: 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=400' }
+        ];
+
+        let myBookings = [];
+
+        // 2. RENDER: Display cars on the page
+        function displayCars() {
+            const grid = document.getElementById('car-grid');
+            grid.innerHTML = cars.map(car => `
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden car-card border dark:border-gray-700">
+                    <img src="${car.img}" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold">${car.name}</h3>
+                            <span class="text-blue-600 font-bold">$${car.price}/day</span>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-4">${car.type} • Automatic • Unlimited Miles</p>
+                        <button onclick="bookCar(${car.id})" class="w-full bg-gray-100 dark:bg-gray-700 py-3 rounded-xl font-bold hover:bg-blue-600 hover:text-white transition">
+                            Book Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 3. LOGIC: Booking a car
+        function bookCar(id) {
+            const car = cars.find(c => c.id === id);
+            const date = new Date().toLocaleDateString();
+            myBookings.push({ ...car, bookingDate: date });
+            alert(`✅ Success! You have booked the ${car.name}. Check your dashboard.`);
+            updateDashboard();
+        }
+
+        // 4. LOGIC: Dashboard & Invoices
+        function updateDashboard() {
+            const list = document.getElementById('booking-list');
+            list.innerHTML = myBookings.map(b => `
+                <tr class="border-b dark:border-gray-700">
+                    <td class="p-4 font-medium">${b.name}</td>
+                    <td class="p-4">${b.bookingDate}</td>
+                    <td class="p-4 font-bold text-green-600">$${b.price}</td>
+                    <td class="p-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Confirmed</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function showDashboard() { document.getElementById('dashboard').classList.remove('hidden'); }
+        function hideDashboard() { document.getElementById('dashboard').classList.add('hidden'); }
+
+        // 5. THEME: Dark Mode
+        function toggleDarkMode() {
+            document.getElementById('body').classList.toggle('dark');
+        }
+
+        // Initialize Icons and Cars
+        lucide.createIcons();
+        displayCars();
+    </script>
+</body>
+</html>
